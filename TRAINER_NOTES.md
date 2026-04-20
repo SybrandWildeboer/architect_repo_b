@@ -9,7 +9,7 @@
 - CORS wildcard voor debug: `fleetpulse/src/index.ts:19`
 - MD5 password hashing: `fleetpulse/src/routes/auth.ts:3,16-19`, `fleetpulse/src/deprecated_auth.ts:2,14-15`, `fleetpulse/seed.js:75,82`
 - Admin endpoint alleen `X-Admin: true`: `fleetpulse/src/middleware/auth.ts:22-26` (gebruikt door `fleetpulse/src/routes/admin.ts:8,28`)
-- Kwetsbare dependency vastgepind: `fleetpulse/package.json:22` (`lodash@4.17.11`)
+- Dependency-risico's zitten nu vooral in transitive packages; directe `axios` is gepatcht op `1.13.5` in `fleetpulse/package.json:17`
 
 ## Observability
 

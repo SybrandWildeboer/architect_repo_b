@@ -1,0 +1,42 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGO_URL=mongodb://host.docker.internal:27017/fleetpulse
+      - REDIS_URL=redis://host.docker.internal:6379
+      - DRIVER_SCORE_URL=http://host.docker.internal:5001
+      - AWS_REGION=eu-west-1
+      - JWT_SECRET=super_secret_dev_key
+      - COGNITO_CLIENT_ID=fleetpulse-ui-client
+      - COGNITO_USER_POOL_ID=eu-west-1_demo_pool
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+      - redis
+      - driver-score-service
+
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  driver-score-service:
+    build:
+      context: ./driver-score-service
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"

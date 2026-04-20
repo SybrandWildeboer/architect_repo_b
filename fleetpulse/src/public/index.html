@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FleetPulse Dashboard</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; background: #0b1220; color: #f6f8ff; }
+      .row { display: flex; gap: 12px; margin-bottom: 10px; }
+      .card { background: #1b2438; border-radius: 8px; padding: 12px; min-width: 180px; }
+      table { border-collapse: collapse; width: 100%; background: #131b2d; }
+      th, td { border: 1px solid #26334f; padding: 6px; font-size: 12px; }
+      th { background: #1d2944; }
+    </style>
+  </head>
+  <body>
+    <h1>FleetPulse Live Dashboard</h1>
+    <div class="row">
+      <div class="card">Total shown: <span id="count">0</span></div>
+      <div class="card">Refreshed: <span id="refreshed">never</span></div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Plate</th>
+          <th>Driver</th>
+          <th>Tenant</th>
+          <th>Speed</th>
+          <th>Fuel</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <script>
+      async function ensureToken() {
+        let token = localStorage.getItem('fleetpulseToken') || '';
+        if (token) return token;
+        try {
+          const login = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ email: 'admin@fleetpulse.test', password: 'demo123' })
+          });
+          const data = await login.json();
+          token = data.token || '';
+          if (token) localStorage.setItem('fleetpulseToken', token);
+        } catch (e) {}
+        return token;
+      }
+      async function tick() {
+        try {
+          const token = await ensureToken();
+          const res = await fetch('/api/vehicles', {
+            headers: token ? { Authorization: 'Bearer ' + token } : {}
+          });
+          const data = await res.json();
+          const rows = data.vehicles || [];
+          document.getElementById('count').textContent = rows.length;
+          document.getElementById('refreshed').textContent = new Date().toLocaleTimeString();
+          document.getElementById('rows').innerHTML = rows.slice(0, 15).map(v =>
+            `<tr><td>${v.vehicleId}</td><td>${v.licensePlate}</td><td>${v.driverName}</td><td>${v.tenantId}</td><td>${v.lastLocation?.speed ?? '-'}</td><td>${v.lastLocation?.fuel ?? '-'}</td><td>${v.driverScore ?? '-'}</td></tr>`
+          ).join('');
+        } catch (e) {}
+      }
+      setInterval(tick, 3000);
+      tick();
+    </script>
+  </body>
+  </html>
